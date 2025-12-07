@@ -2,7 +2,7 @@
   "name": "Focus Streak Game",
   "short_name": "Focus Streak",
   "description": "Build uninterrupted focus streaks to cope with ADHD",
-  "start_url": "/focus-streak-game.html",
+  "start_url": "/Focus-Streak-Game/",
   "display": "standalone",
   "background_color": "#667eea",
   "theme_color": "#667eea",
