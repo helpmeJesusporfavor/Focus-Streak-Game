@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Focus Streak">
+    <title>Focus Streak Game</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+```
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        color: white;
+        overflow-x: hidden;
+    }
+
+    .container {
+        width: 100%;
+        max-width: 400px;
+        text-align: center;
+    }
+
+    h1 {
+        font-size: 2.5em;
+        margin-bottom: 10px;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }
+
+    .subtitle {
+        font-size: 1.1em;
+        opacity: 0.9;
+        margin-bottom: 40px;
+    }
+
+    .stats-container {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        padding: 30px;
+        margin-bottom: 30px;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+    }
+
+    .stat {
+        margin-bottom: 25px;
+    }
+
+    .stat:last-child {
+        margin-bottom: 0;
+    }
+
+    .stat-label {
+        font-size: 0.9em;
+        opacity: 0.8;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 5px;
+    }
+
+    .stat-value {
+        font-size: 3em;
+        font-weight: bold;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+    }
+
+    .timer {
+        font-size: 4em;
+        font-weight: bold;
+        margin: 20px 0;
+        font-variant-numeric: tabular-nums;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+    }
+
+    .button {
+        width: 100%;
+        padding: 20px;
+        font-size: 1.3em;
+        font-weight: bold;
+        border: none;
+        border-radius: 15px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+
+    .start-button {
+        background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        color: white;
+        margin-bottom: 15px;
+    }
+
+    .start-button:active {
+        transform: scale(0.98);
+        box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+
+    .stop-button {
+        background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);
+        color: white;
+        margin-bottom: 15px;
+    }
+
+    .stop-button:active {
+        transform: scale(0.98);
+        box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+
+    .reset-button {
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        font-size: 1em;
+        padding: 15px;
+    }
+
+    .reset-button:active {
+        transform: scale(0.98);
+        background: rgba(255, 255, 255, 0.3);
+    }
+
+    .status {
+        font-size: 1.2em;
+        margin-bottom: 20px;
+        opacity: 0.9;
+        min-height: 30px;
+    }
+
+    .hidden {
+        display: none;
+    }
+
+    .celebration {
+        animation: celebrate 0.5s ease;
+    }
+
+    @keyframes celebrate {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+    }
+
+    .streak-emoji {
+        font-size: 2em;
+        margin-left: 10px;
+    }
+
+    @media (max-height: 700px) {
+        h1 { font-size: 2em; }
+        .timer { font-size: 3em; }
+        .stat-value { font-size: 2.5em; }
+    }
+</style>
+```
+
+</head>
+<body>
+    <div class="container">
+        <h1>🎯 Focus Streak</h1>
+        <p class="subtitle">Build uninterrupted focus</p>
+
+```
+    <div class="stats-container">
+        <div class="stat">
+            <div class="stat-label">Current Streak</div>
+            <div class="stat-value" id="currentStreak">0</div>
+        </div>
+        <div class="stat">
+            <div class="stat-label">Best Streak</div>
+            <div class="stat-value" id="bestStreak">0</div>
+        </div>
+        <div class="stat">
+            <div class="stat-label">Total Sessions</div>
+            <div class="stat-value" id="totalSessions">0</div>
+        </div>
+    </div>
+
+    <div class="status" id="status">Ready to focus?</div>
+    <div class="timer" id="timer">00:00</div>
+
+    <button class="button start-button" id="startButton">Start Focus</button>
+    <button class="button stop-button hidden" id="stopButton">Complete Session</button>
+    <button class="button reset-button" id="resetButton">Reset All Stats</button>
+</div>
+
+<script>
+    let startTime = null;
+    let timerInterval = null;
+    let currentStreak = 0;
+    let bestStreak = 0;
+    let totalSessions = 0;
+
+    const startButton = document.getElementById('startButton');
+    const stopButton = document.getElementById('stopButton');
+    const resetButton = document.getElementById('resetButton');
+    const timer = document.getElementById('timer');
+    const status = document.getElementById('status');
+    const currentStreakEl = document.getElementById('currentStreak');
+    const bestStreakEl = document.getElementById('bestStreak');
+    const totalSessionsEl = document.getElementById('totalSessions');
+
+    // Load saved data
+    function loadData() {
+        const saved = localStorage.getItem('focusStreakData');
+        if (saved) {
+            const data = JSON.parse(saved);
+            currentStreak = data.currentStreak || 0;
+            bestStreak = data.bestStreak || 0;
+            totalSessions = data.totalSessions || 0;
+            updateDisplay();
+        }
+    }
+
+    // Save data
+    function saveData() {
+        const data = {
+            currentStreak,
+            bestStreak,
+            totalSessions
+        };
+        localStorage.setItem('focusStreakData', JSON.stringify(data));
+    }
+
+    // Update display
+    function updateDisplay() {
+        currentStreakEl.textContent = currentStreak;
+        bestStreakEl.textContent = bestStreak;
+        totalSessionsEl.textContent = totalSessions;
+        
+        // Add celebration emoji for streaks
+        if (currentStreak >= 5) {
+            currentStreakEl.innerHTML = currentStreak + '<span class="streak-emoji">🔥</span>';
+        }
+        if (currentStreak >= 10) {
+            currentStreakEl.innerHTML = currentStreak + '<span class="streak-emoji">🔥🔥</span>';
+        }
+    }
+
+    // Format time
+    function formatTime(seconds) {
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    }
+
+    // Start timer
+    function startTimer() {
+        startTime = Date.now();
+        startButton.classList.add('hidden');
+        stopButton.classList.remove('hidden');
+        status.textContent = 'Focusing... 🧠';
+
+        timerInterval = setInterval(() => {
+            const elapsed = Math.floor((Date.now() - startTime) / 1000);
+            timer.textContent = formatTime(elapsed);
+        }, 1000);
+    }
+
+    // Stop timer
+    function stopTimer() {
+        if (timerInterval) {
+            clearInterval(timerInterval);
+            timerInterval = null;
+        }
+
+        const elapsed = Math.floor((Date.now() - startTime) / 1000);
+        
+        // Only count as a session if at least 1 minute
+        if (elapsed >= 60) {
+            currentStreak++;
+            totalSessions++;
+            
+            if (currentStreak > bestStreak) {
+                bestStreak = currentStreak;
+                status.textContent = '🎉 New best streak!';
+            } else {
+                status.textContent = '✅ Session complete!';
+            }
+            
+            currentStreakEl.classList.add('celebration');
+            setTimeout(() => currentStreakEl.classList.remove('celebration'), 500);
+        } else {
+            status.textContent = 'Session too short (need 1+ min)';
+        }
+
+        updateDisplay();
+        saveData();
+        
+        startButton.classList.remove('hidden');
+        stopButton.classList.add('hidden');
+        timer.textContent = '00:00';
+        startTime = null;
+    }
+
+    // Reset stats
+    function resetStats() {
+        if (confirm('Reset all stats? This cannot be undone.')) {
+            currentStreak = 0;
+            bestStreak = 0;
+            totalSessions = 0;
+            updateDisplay();
+            saveData();
+            status.textContent = 'Stats reset. Ready to focus?';
+            timer.textContent = '00:00';
+        }
+    }
+
+    // Event listeners
+    startButton.addEventListener('click', startTimer);
+    stopButton.addEventListener('click', stopTimer);
+    resetButton.addEventListener('click', resetStats);
+
+    // Initialize
+    loadData();
+
+    // Register service worker for PWA
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('sw.js').catch(() => {
+            // Silent fail if service worker doesn't exist
+        });
+    }
+</script>
+```
+
+</body>
+</html>
